@@ -133,6 +133,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CORS 설정 완전 단순화
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_ALL_ORIGINS = True  # 둘 다 True로 설정
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+    'x-encrypted-data',
+]
 
 # 기타 CORS 관련 설정 제거
 CORS_ALLOW_CREDENTIALS = False
