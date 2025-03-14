@@ -25,5 +25,5 @@ urlpatterns = [
 
     path('api/fecal/image/id/<int:image_id>', views.get_image_by_id, name='get_image_by_id'),
 
-    path('api/fecal/analyze', views.get_analysis_result, name='get_analysis_result'),
+    path('api/fecal/analyze/', views.get_analysis_result, name='get_analysis_result'),
 ]

@@ -140,7 +140,7 @@ def get_analysis_result(request):
         )
 
         return Response(
-            {'data': {'result': completion.choices[0].message.content}}, 
+            {'result': completion.choices[0].message.content}, 
             status=status.HTTP_200_OK
         )
 

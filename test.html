@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React + Forge 암호화 요청 테스트</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.0/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/forge/1.3.1/forge.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        function App() {
+            const [encryptedText, setEncryptedText] = React.useState("");
+            const [responseText, setResponseText] = React.useState("응답 대기 중...");
+
+            React.useEffect(() => {
+                const PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+                                    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1noRwNYRIKyRWlONkI0Z
+                                    0luareVlXnVIgXMFhNc7Na04U+C2E1k4lyVf98d3fJbPF/45oUb79Ja2lbs0/iH4
+                                    tveb5BTMbW0C2WsDcspK/KYQFRHw9/I9Et5VAmbcq8KNvnkPBI4J8qu5+FP5W7R9
+                                    aVTvcVFWJnttHBkXRVsGU4O/stp4+GwBKzCnvReY/m1lUj9vm+U2rAQwyl1//hsb
+                                    1ildllMIeyDrrR+abngrP74I9E18ELpG/PktBPM+oVBSVBwbh6jTuaeLvLO/1AFn
+                                    cwcbGARRggaQF/o7Oo/dd2pOjh2+UcCmPzG1+3HqrvSjBn28kCzw3xJPCAg2jPZx
+                                    cQIDAQAB
+                                    -----END PUBLIC KEY-----
+                                    `;
+
+                const timestamp = Math.floor(Date.now() / 1000).toString(); // 현재 시간 타임스탬프 반환
+
+                try {
+                    const publicKey = forge.pki.publicKeyFromPem(PUBLIC_KEY); // 공개 키 로드
+
+                    // 타임스탬프를 RSA-OAEP 방식으로 암호화
+                    const encrypted = publicKey.encrypt(timestamp, 'RSA-OAEP', {
+                        md: forge.md.sha256.create(),
+                        mgf1: { md: forge.md.sha256.create() }
+                    });
+
+                    // Base64 인코딩
+                    const base64Encoded = forge.util.encode64(encrypted);
+                    setEncryptedText(base64Encoded);
+
+                    // 서버로 요청 전송
+                    fetch("http://54.180.114.131:8081/api/fecal/get_info/", {
+                        method: "GET", // GET 요청
+                        mode:"cors",
+                        headers: {
+                            "X-Encrypted-Data": base64Encoded
+                        }
+                    })
+                    .then(response => response.text()) // 응답을 텍스트로 변환
+                    .then(data => {
+                        setResponseText(data);
+                    })
+                    .catch(error => {
+                        console.error("요청 오류:", error);
+                        setResponseText("요청 실패");
+                    });
+
+                } catch (error) {
+                    console.error("암호화 오류:", error);
+                    setEncryptedText("암호화 실패");
+                }
+            }, []);
+
+            return (
+                <div>
+                    <h2>React + Forge 암호화 요청 테스트</h2>
+                    <p>암호화된 타임스탬프 (Base64):</p>
+                    <textarea value={encryptedText} rows="5" cols="60" readOnly />
+                    <h3>서버 응답:</h3>
+                    <textarea value={responseText} rows="5" cols="60" readOnly />
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById("root"));
+        root.render(<App />);
+    </script>
+</body>
+</html>
